@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  voting:
+    stdin_open: true
+    restart: unless-stopped
+    tty: true
+    container_name: voting
+    build: .
+    network_mode: host
+    volumes:
+      - .:/var/api
