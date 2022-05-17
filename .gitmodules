@@ -1,0 +1,3 @@
+[submodule "src/smart_contract"]
+	path = src/smart_contract
+	url = git@github.com:taks-jac/healt-on-chain.git

@@ -1,0 +1,11 @@
+.env
+.env.develop
+.env.stage
+.env.prod
+.env_ganache
+.env_mumbai
+node_modules/
+
+src/contracts/build
+truffle-config.js
+deploy_lambda.txt
