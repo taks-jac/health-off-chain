@@ -8,7 +8,7 @@ import swaggerDocument from '../docs/openapi.json';
 import db from './core/db/connection.js';
 
 const app = express();
-const basePath = '/voting';
+const basePath = '/health-off-chain';
 
 app.use(cors());
 
@@ -26,7 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res, next) => {
   return res.status(200).json({
     status: 'ok',
-    name: 'ms-voting',
+    name: 'ms-health',
     version: config.API_VERSION
   });
 });

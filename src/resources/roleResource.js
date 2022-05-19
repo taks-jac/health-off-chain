@@ -1,13 +1,13 @@
 import ethers from 'ethers';
-import ControlStructureGovern from '../contracts/dist/contracts/ControlStructureGovern.json';
+import HealthStructure from '../smart_contract/dist/HealthControl.json';
 import config from '../config/index.js';
 
-class RoleResource {
+class HealthRoleResource {
 
   constructor(conf = {}) {
     this.conf = conf;
     const provider = this.configureProvider(conf);
-    this.ControlStructureGovern = new ethers.Contract(conf.controlStructureAddress, ControlStructureGovern.abi, provider);
+    this.HealthStructure = new ethers.Contract(conf.controlStructureAddress, HealthStructure.abi, provider);
   }
 
   configureProvider(conf = {}) {
@@ -15,49 +15,30 @@ class RoleResource {
   }
 
   /**
-   * Only owner
-   * @param {*} new_member_address (address of new member))
+   * Only admin
+   * @param {*} doctor_address (address of new doctor)
+   * @param {*} cid_profile (CID IPFS profile of doctor)
    */
-  async addMember(new_member_address) {
-    const addMemberResult = await this.ControlStructureGovern.addMember(new_member_address, {
+  async addDoctor(doctor_address,cid_profile) {
+    const addDoctorResult = await this.HealthStructure.addDoctor(doctor_address, cid_profile ,{
       gasLimit: 1000000,
       gasPrice: config.price_setting
     });
   }  
 
   /**
-   * Only owner
-   * @param {*} old_member_address (address of new member))
+   * Only admin
+   * @param {*} user_address (address of new user)
+   * @param {*} cid_profile (CID IPFS profile of user)
    */
-   async removeMember(old_member_address) {
-    const revokeMemberResult = await this.ControlStructureGovern.removeMember(old_member_address, {
+   async addUser(user_address,cid_profile) {
+    const addUserResult = await this.HealthStructure.addDoctor(user_address,cid_profile, {
       gasLimit: 1000000,
       gasPrice: config.price_setting
     });
   }  
 
-  /**  
-   * @description: Request dao organization members
-   */
-   async getOrganizationMembers() {
-    const org_members_request = await this.ControlStructureGovern.getOrganizationMembers( {
-      gasLimit: 1000000,
-      gasPrice: config.price_setting
-    });
-    return org_members_request;
-  }  
-
-  /**  
-   * @description: Get amount of members in dao organization
-   */
-   async numberOfMembers() {
-    const org_members_count = await this.ControlStructureGovern.numberOfMembers( {
-      gasLimit: 1000000,
-      gasPrice: config.price_setting
-    });
-    return org_members_count;
-  }  
-
+  
 }
 
-export default RoleResource;
+export default HealthRoleResource;
