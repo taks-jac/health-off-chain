@@ -30,11 +30,23 @@ class HealthStoreResource {
    * Only admin
    * @param {*} doctor_address (address of doctor to approve)
    */
-   async approveUser(doctor_address,cid_profile) {
-    const approveUserResult = await this.HealthStructure.approveUser(doctor_address,cid_profile, {
+   async approveUser(doctor_address) {
+    const approveUserResult = await this.HealthStructure.approveUser(doctor_address, {
       gasLimit: 1000000,
       gasPrice: config.price_setting
     });
+  }  
+
+  /**
+   * Only admin
+   * @param {*} user_address (address of user to view history)
+   */
+   async viewHistorial(user_address) {
+    const viewHistoryResult = await this.HealthStructure.viewHistorial(user_address, {
+      gasLimit: 1000000,
+      gasPrice: config.price_setting
+    });
+    return viewHistoryResult
   }  
 
   
