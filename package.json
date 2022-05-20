@@ -31,6 +31,8 @@
     "it-all": "^1.0.6"
   },
   "devDependencies": {
+    "cids": "^1.1.9",
+    "multihashes": "^4.0.3",
     "nodemon": "^2.0.16"
   }
 }

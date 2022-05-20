@@ -11,7 +11,8 @@ class RolesController {
       const data = req.body;  
       const ipfs = await IPFS.create();
 
-      const metaObj = {"name": data.name, "description": data.description,};
+      const metaObj = {"name": data.name, 
+                       "description": data.description};
       const jsonObj = JSON.stringify(metaObj);
 
       
