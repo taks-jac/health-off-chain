@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import upload from 'express-fileupload'
 import routes from './routes/index.js';
 import config from './config/index.js';
 import ErrorMiddleware from './core/errors/errorConverterMiddleware.js';
@@ -10,6 +11,7 @@ import db from './core/db/connection.js';
 const app = express();
 const basePath = '/health-off-chain';
 
+app.use(upload());
 app.use(cors());
 
 app.set('env', config.env);
