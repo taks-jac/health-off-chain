@@ -6,9 +6,11 @@ import RolesController from '../controllers/rolesController.js';
 
 const router = express.Router();
 
-// Proposal functions
-router.post('/roles', 
+// Role functions
+router.post('/roles/doctor', 
             RolesController.addDoctorRole);
+router.post('/roles/user', 
+            RolesController.addUserRole);
 
 export default router;
 
