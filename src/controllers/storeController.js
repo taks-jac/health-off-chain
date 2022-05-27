@@ -1,10 +1,9 @@
 import { create } from 'ipfs-http-client'
-import CID from 'cids'
-import multihash from 'multihashes'
-
 import config from '../config/index.js'; 
 
 import Cryptography from '../utils/cryptography.js';
+import CIDResource from '../utils/cidHashes.js'
+
 import HealthStoreResource from '../resources/storeResource';
 
 class StoreController { 
@@ -14,7 +13,7 @@ class StoreController {
       const data = req.body
 
       const healthStore = new HealthStoreResource({    
-        controlStructureAddress: config.agrosTokenContractAddress, 
+        controlStructureAddress: config.scHealthStoreaddress, 
         controllerPrivateKey: data.user_private_key,
         rpcUrl: config.network.rpcUrl
       });  
@@ -33,42 +32,54 @@ class StoreController {
       const data = req.body;  
       const ipfs = await create();    
       const crypto = new Cryptography(); 
-      
+      const hashes = new CIDResource();     
 
       const healthStore = new HealthStoreResource({    
-        controlStructureAddress: config.agroStructureContractAddress, 
+        controlStructureAddress: config.scHealthStoreaddress, 
         controllerPrivateKey: data.doctor_private_key,
         rpcUrl: config.network.rpcUrl
       });  
 
       const request_history = await healthStore.viewHistorial(data.user_address);
-      if (request_history[0] == config.not_history ){
-        const user_folder = crypto.encrypt(data.user_address)+'.json'
 
+      const cid_files = [];
+      const name_files = [];
+
+      _.forEach(_.keysIn(req.files.files), (i) => {
+        let file = req.files.files[i];
+        const upload_data = await ipfs.add(file); 
+        const url_profile = "ipfs.io/ipfs/"+ upload_data.cid
+        cid_files.push(url_profile);     
+        name_files.push(`${file.name}+${file.mimetype}`); 
+
+        });
+      
+      const ipfs_file = {"analysis_name": data.analysis_name, 
+                         "consultation_date": Date.now(),
+                         "medical_center_name": data.medical_center_name,                     
+                         "country":data.country,
+                         "city": data.city,
+                         "hospital": data.hospital,
+                         "files_attach_link": cid_files,
+                         "files_attach_name": name_files,
+                         "classification":data.classification};    
+      const jsonObj = JSON.stringify(ipfs_file);    
+                          
+      const user_folder =  crypto.encrypt(data.user_address);
+      if (request_history[0] == config.not_history ){        
+        const create_mkdir = await ipfs.files.mkdir(user_folder, { parents: true })     
       }
       
+      const upload_files = await ipfs.files.write(`${user_folder}/${ipfs_file.analysis_name}.json`,jsonObj, { create: true })
 
+      const ipfs_user_folder = await ipfs.files.stat(user_folder)
+      const hash_folder = await hashes.getHash(ipfs_user_folder.cid)       
 
-     
-        const ipfs_user_profile = {"name": data.name, 
-                                    "last_name":data.last_name,
-                                    "description": data.description,
-                                    "age":data.age,
-                                    "country":data.country,
-                                    "country_id":data.country_id};
+      const addHistory = await healthStore.addHistorial(data.user_address,hash_folder);
 
-        const jsonObj = JSON.stringify(ipfs_user_profile);      
-        const profile_upload = ipfs.add(jsonObj) 
-
-        const cid = new CID(profile_upload.cid).toJSON()
-        const hash = multihash.decode(cid.hash)
-        const result = "0x"+ multihash.toHexString(hash.digest)    
-
-        const addUserRole = await healthStore.addHistorial(data.user_address,cid_data);
-
-      return res.status(200).json({ message: `User profile register successfully.` });
+      return res.status(200).json({ message: `User data upload to IPFS successfully.` });
     } catch (error) { 
-      return next({ message: 'Issues trying register user profile.', status: 500 });
+      return next({ message: 'Issues trying upload user data.', status: 500 });
     }
   }  
 
@@ -76,33 +87,27 @@ class StoreController {
     try {   
       
       const data = req.body;  
-      const ipfs = await IPFS.create();     
+      const hashes = new CIDResource();     
+      const ipfs = await create();         
      
-      const ipfs_user_profile = {"name": data.name, 
-                                   "last_name":data.last_name,
-                                   "description": data.description,
-                                   "age":data.age,
-                                   "country":data.country,
-                                   "country_id":data.country_id};
 
-      const jsonObj = JSON.stringify(ipfs_user_profile);      
-      const profile_upload = ipfs.add(jsonObj) 
-
-      const cid = new CID(profile_upload.cid).toJSON()
-      const hash = multihash.decode(cid.hash)
-      const result = "0x"+ multihash.toHexString(hash.digest)    
-
-      const healthRoles = new HealthRoleResource({    
-        controlStructureAddress: config.agroStructureContractAddress, 
-        controllerPrivateKey: crypto.decrypt(config.agrosAdminPrivateKey),
+      const healthStore = new HealthStoreResource({    
+        controlStructureAddress: config.scHealthStoreaddress, 
+        controllerPrivateKey: data.doctor_private_key,
         rpcUrl: config.network.rpcUrl
       });  
 
-      const addUserRole = await healthRoles.addUser(data.user_address,result);
+      const viewHistory = await healthStore.viewHistorial(data.user_address);
+      const cid_folder = hashes.getCID(viewHistory[0]);
+      const list_file = [];
+      for await (const file of ipfs.ls(cid_folder)) {
+        const file_content = await ipfs.files.read(file.path);
+        list_file.push(file_content);
+      }
 
-      return res.status(200).json({ message: `User profile register successfully.` });
+      return res.status(200).json({ message: `Request user data history successfully.`,data : list_file });
     } catch (error) { 
-      return next({ message: 'Issues trying register user profile.', status: 500 });
+      return next({ message: 'Issues trying view user data history.', status: 500 });
     }
   } 
 }
